@@ -1,0 +1,19 @@
+Astronaut
+Clown
+Pirate
+Cowboy
+Chef
+Scientist
+Knight
+Barista
+Magician
+Lifeguard
+Mime
+Sumo Wrestler
+Opera Singer
+Detective
+Viking
+Janitor
+Painter
+Ballerina
+Firefighter
