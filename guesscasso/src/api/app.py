@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 import matplotlib.pyplot as plt
 import random
@@ -7,12 +8,17 @@ from io import BytesIO
 from PIL import Image
 import base64
 
+# Load environment variables from .env file
+load_dotenv()
+
 random_seed = random.randint(0, 1)
 app = Flask(__name__)
 # MODELS
 # stabilityai/stable-diffusion-2-1
 # stable-diffusion-v1-5/stable-diffusion-v1-5
 # Initialize client
+
+print("OPOP", os.getenv("HUGGINGFACE_API_KEY"))
 client = InferenceClient(
     api_key=os.getenv("HUGGINGFACE_API_KEY")
 )
