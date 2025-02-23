@@ -1,0 +1,12 @@
+Asteroid
+Mars
+Moon
+Alien
+Black Hole
+Wormhole
+Meteor
+Rocket
+UFO
+Astronaut
+Sun
+Spacesuit
