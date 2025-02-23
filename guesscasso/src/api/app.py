@@ -26,8 +26,8 @@ groq_client = Groq(
 )
 
 params = {
-    "width": 512,
-    "height": 512,
+    "width": 448,
+    "height": 448,
     "num_inference_steps": 5,
     "guidance_scale": 10,
     "seed": random_seed
@@ -45,11 +45,9 @@ def add_noise_to_image(image_array, noise_level=10):
     :param noise_level: float, the amount of noise to add
     :return: numpy array with noise added
     """
-    print(np.linalg.norm(image_array))
     noise = np.random.randn(*image_array.shape) * noise_level
     noisy_image = image_array + noise
     noisy_image = np.clip(noisy_image, 0, 255)  # Ensure values are within valid range
-    print("NOISE", np.linalg.norm(noisy_image))
     return noisy_image.astype(np.uint8)
 
 @app.route('/api/generate')
@@ -109,7 +107,7 @@ def run_model():  # prompt is text
         noisy_images_base64 = [f'data:image/png;base64,{img_base64}'] * 5
 
     noisy_images_base64 = noisy_images_base64[::-1]
-    return jsonify({'answer': answer, 'images': noisy_images_base64})
+    return jsonify({'categories': [category1, category2], 'correctWords': [word1, word2], 'answer': answer, 'images': noisy_images_base64})
 
 @app.route('/api/evaluate', methods=['POST'])
 def check():
