@@ -3,14 +3,15 @@ import Image from 'next/image';
 import { GameContext } from './gameContext';
 
 function Game() {
-    const ROUND_TIME = 10; // Round duration in seconds
-    const IMAGE_UPDATE_INTERVAL = 2; // Interval to update the image in seconds
+    const ROUND_TIME = 20; // Round duration in seconds
+    const NUM_IMAGES = 10; // Number of images + noisy images
 
     const [timeLeft, setTimeLeft] = useState(0); // Time elapsed in the current round
     const [isGameRunning, setIsGameRunning] = useState(false); // Whether the game is running
     const [guess, setGuess] = useState(''); // User's guess
     const [answer, setAnswer] = useState(''); // Correct answer
-    const [image, setImage] = useState(''); // Generated image
+    const [image, setImage] = useState(''); // Current image
+    const [images, setImages] = useState([]); // List of generated images
 
     const { score, numRounds, addToScore, resetScore, incrementRounds } =
         useContext(GameContext);
@@ -32,7 +33,7 @@ function Game() {
         incrementRounds(); // Increment the number of rounds
         setGuess(''); // Reset the user's guess
         setImage(''); // Reset the image
-        setIsGameRunning(true); // Start the game
+        fetchImage().then(() => setIsGameRunning(true)); // Fetch the initial image, then start the game
     };
 
     const stopGame = () => {
@@ -44,10 +45,7 @@ function Game() {
         if (!isGameRunning) return; // Exit if the game is not running
 
         const loadImageAndStartTimer = async () => {
-            await fetchImage(); // Fetch the initial image
-            console.log('Image fetched!');
-
-            const interval = setInterval(async () => {
+            const interval = setInterval(() => {
                 if (!isGameRunningRef.current) {
                     clearInterval(interval); // Stop the interval if the game is not running
                     return;
@@ -58,12 +56,13 @@ function Game() {
                         setIsGameRunning(false); // End the game
                         return ROUND_TIME;
                     }
-                    return prevTime - 1; // Increment elapsed time
+                    return prevTime - 1; // Decrement elapsed time
                 });
 
-                // if (timeLeft % IMAGE_UPDATE_INTERVAL === 0) {
-                //     await fetchImage(); // Update the image every few seconds
-                // }
+                const timeElapsed = ROUND_TIME - timeLeftRef.current;
+                const divisor = Math.floor(ROUND_TIME / NUM_IMAGES);
+                const currentImageIndex = Math.floor(timeElapsed / divisor);
+                setImage(images[currentImageIndex]);
             }, 1000); // Run every second
 
             return () => clearInterval(interval);
@@ -77,9 +76,9 @@ function Game() {
         try {
             const response = await fetch('/api/generate');
             const data = await response.json();
-            setAnswer(data.answer);
-            setImage(data.image);
             console.log("ANSWER: ", data.answer);
+            setAnswer(data.answer);
+            setImages(data.images);
         } catch (error) {
             console.error('Error fetching image:', error);
         }
@@ -154,7 +153,6 @@ function Game() {
                     </>
                 )}
             </div>
-
             <div className="flex flex-col w-full self-center items-center justify-items-center gap-4 font-[family-name:var(--font-geist-sans)]">
                 {!isGameRunning ? (
                     <button
