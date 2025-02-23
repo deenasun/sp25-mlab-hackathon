@@ -16,10 +16,15 @@ function Game() {
         useContext(GameContext);
 
     const isGameRunningRef = useRef(isGameRunning);
+    const timeLeftRef = useRef(timeLeft);
 
     useEffect(() => {
         isGameRunningRef.current = isGameRunning;
     }, [isGameRunning]);
+
+    useEffect(() => {
+        timeLeftRef.current = timeLeft;
+    }, [timeLeft]);
 
     // Start the game
     const startGame = () => {
@@ -74,33 +79,39 @@ function Game() {
             const data = await response.json();
             setAnswer(data.answer);
             setImage(data.image);
+            console.log("ANSWER: ", data.answer);
         } catch (error) {
             console.error('Error fetching image:', error);
         }
     };
 
     const checkAnswer = async (userGuess) => {
-        const response = await fetch('/api/evaluate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                answer,
-                userGuess,
-            }),
-        });
-        const data = await response.json();
-        console.log('Answer:', data);
+        try {
+            const response = await fetch('/api/evaluate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    answer,
+                    userGuess,
+                }),
+            });
+            const data = await response.json();
+            if (data.score == 1) {
+                const additonalScore = timeLeftRef.current * 10;
+                addToScore(additonalScore)
+                stopGame();
+            }
+
+        } catch (error) {
+            console.error('Error checking answer:', error);
+        }
     }
 
     const handleAction = (submittedGuess) => {
         if (isGameRunning) {
             checkAnswer(submittedGuess);
-            if (submittedGuess === 'dog') {
-                addToScore(50);
-                stopGame();
-            }
         }
     };
 

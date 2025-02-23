@@ -39,17 +39,25 @@ def hello():
 @app.route('/api/generate')
 def run_model():  # prompt is text
     print("started generation")
-    params = {
-    "width": 1024,
-    "height": 1024,
-    "num_inference_steps": 20,
-    "guidance_scale": 4.5,
-    "seed": random_seed
-}
-    word1, word2 = "lion", "fish"
+
+    folder_path = "words"
+    word_dict = {}
+
+    for file in os.scandir(folder_path):
+        if file.is_file():
+            category = os.path.splitext(file.name)[0]
+
+            with open(file.path, "r", encoding="utf-8") as f:
+                words = [line.strip().lower() for line in f.readlines()]
+
+            word_dict[category] = words 
+
+    category1, category2 = random.sample(tuple(word_dict.keys()), 2)
+    word1, word2 = random.choice(word_dict[category1]), random.choice(word_dict[category2])
     prompt = f"A single creature that is a {word1} and a {word2} merged together into one entity"
+    answer = f"{word1} {word2}"
     # neg = "split, two separate things, half-and-half, side-by-side, blurry, low resolution"
-    print("started generation")
+    print(f"started generation for the words {word1} and {word2}")
 
     steps = params['num_inference_steps']
     try:
@@ -66,13 +74,14 @@ def run_model():  # prompt is text
     img.save(img_io, 'PNG')
     img_io.seek(0)  # Move to the beginning of the buffer
     img_base64 = base64.b64encode(img_io.getvalue()).decode('utf-8')
-    return jsonify({'answer': prompt, 'image': f'data:image/png;base64,{img_base64}'})
+    return jsonify({'answer': answer, 'image': f'data:image/png;base64,{img_base64}'})
 
-@app.route('/api/check')
+@app.route('/api/evaluate', methods=['POST'])
 def check():
-    guess = request.args.get('guess')
-    answer = request.args.get('answer')
-    print(guess)
+    data = request.json
+    guess = data.get('userGuess')
+    answer = data.get('answer')
+    print("GUESS", guess, "ANSWER", answer)
     chat_completion = groq_client.chat.completions.create(
         messages=[
             {
@@ -86,4 +95,5 @@ Answer: {answer}"""
         ],
         model="llama-3.3-70b-versatile",
     )
+    print("LLM score", chat_completion.choices[0].message.content)
     return jsonify({'score': chat_completion.choices[0].message.content, 'status': 'ok'})
