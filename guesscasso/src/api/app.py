@@ -28,7 +28,7 @@ groq_client = Groq(
 params = {
     "width": 448,
     "height": 448,
-    "num_inference_steps": 5,
+    "num_inference_steps": 6,
     "guidance_scale": 10,
     "seed": random_seed
 }

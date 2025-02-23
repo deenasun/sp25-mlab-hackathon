@@ -166,14 +166,14 @@ function Game() {
                 {!isGameRunning ? (
                     <button
                         onClick={startGame}
-                        className="rounded-md bg-green-100 p-2"
+                        className="rounded-md bg-green-100 p-2 h-[40px] hover:bg-green-200"
                     >
                         {numRounds == 0 ? 'Start Game' : 'Next Round'}
                     </button>
                 ) : (
                     <button
                         onClick={stopGame}
-                        className="rounded-md bg-red-100 p-2"
+                        className="rounded-md bg-red-100 p-2 h-[40px]"
                     >
                         Stop Game
                     </button>
