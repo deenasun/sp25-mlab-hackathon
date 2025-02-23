@@ -3,23 +3,29 @@ import Image from 'next/image';
 import { GameContext } from './gameContext';
 
 function Game() {
-    const ROUND_TIME = 10; // Round duration in seconds
-    const IMAGE_UPDATE_INTERVAL = 2; // Interval to update the image in seconds
+    const ROUND_TIME = 20; // Round duration in seconds
+    const NUM_IMAGES = 10; // Number of images + noisy images
 
     const [timeLeft, setTimeLeft] = useState(10); // Time elapsed in the current round
     const [isGameRunning, setIsGameRunning] = useState(false); // Whether the game is running
     const [guess, setGuess] = useState(''); // User's guess
     const [answer, setAnswer] = useState(''); // Correct answer
-    const [image, setImage] = useState(''); // Generated image
+    const [image, setImage] = useState(''); // Current image
+    const [images, setImages] = useState([]); // List of generated images
 
     const { score, numRounds, addToScore, resetScore, incrementRounds, categories, correctWords } =
         useContext(GameContext);
 
     const isGameRunningRef = useRef(isGameRunning);
+    const timeLeftRef = useRef(timeLeft);
 
     useEffect(() => {
         isGameRunningRef.current = isGameRunning;
     }, [isGameRunning]);
+
+    useEffect(() => {
+        timeLeftRef.current = timeLeft;
+    }, [timeLeft]);
 
     // Start the game
     const startGame = () => {
@@ -27,7 +33,7 @@ function Game() {
         incrementRounds(); // Increment the number of rounds
         setGuess(''); // Reset the user's guess
         setImage(''); // Reset the image
-        setIsGameRunning(true); // Start the game
+        fetchImage().then(() => setIsGameRunning(true)); // Fetch the initial image, then start the game
     };
 
     const stopGame = () => {
@@ -39,10 +45,7 @@ function Game() {
         if (!isGameRunning) return; // Exit if the game is not running
 
         const loadImageAndStartTimer = async () => {
-            await fetchImage(); // Fetch the initial image
-            console.log('Image fetched!');
-
-            const interval = setInterval(async () => {
+            const interval = setInterval(() => {
                 if (!isGameRunningRef.current) {
                     clearInterval(interval); // Stop the interval if the game is not running
                     return;
@@ -53,12 +56,13 @@ function Game() {
                         setIsGameRunning(false); // End the game
                         return ROUND_TIME;
                     }
-                    return prevTime - 1; // Increment elapsed time
+                    return prevTime - 1; // Decrement elapsed time
                 });
 
-                // if (timeLeft % IMAGE_UPDATE_INTERVAL === 0) {
-                //     await fetchImage(); // Update the image every few seconds
-                // }
+                const timeElapsed = ROUND_TIME - timeLeftRef.current;
+                const divisor = Math.floor(ROUND_TIME / NUM_IMAGES);
+                const currentImageIndex = Math.floor(timeElapsed / divisor);
+                setImage(images[currentImageIndex]);
             }, 1000); // Run every second
 
             return () => clearInterval(interval);
@@ -72,35 +76,41 @@ function Game() {
         try {
             const response = await fetch('/api/generate');
             const data = await response.json();
+            console.log("ANSWER: ", data.answer);
             setAnswer(data.answer);
-            setImage(data.image);
+            setImages(data.images);
         } catch (error) {
             console.error('Error fetching image:', error);
         }
     };
 
     const checkAnswer = async (userGuess) => {
-        const response = await fetch('/api/evaluate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                answer,
-                userGuess,
-            }),
-        });
-        const data = await response.json();
-        console.log('Answer:', data);
+        try {
+            const response = await fetch('/api/evaluate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    answer,
+                    userGuess,
+                }),
+            });
+            const data = await response.json();
+            if (data.score == 1) {
+                const additonalScore = timeLeftRef.current * 10;
+                addToScore(additonalScore)
+                stopGame();
+            }
+
+        } catch (error) {
+            console.error('Error checking answer:', error);
+        }
     }
 
     const handleAction = (submittedGuess) => {
         if (isGameRunning) {
             checkAnswer(submittedGuess);
-            if (submittedGuess === 'dog') {
-                addToScore(50);
-                stopGame();
-            }
         }
     };
 
