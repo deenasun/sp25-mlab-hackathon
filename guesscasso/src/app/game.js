@@ -6,7 +6,7 @@ function Game() {
     const ROUND_TIME = 20; // Round duration in seconds
     const NUM_IMAGES = 10; // Number of images + noisy images
 
-    let newGame = true;
+    const [newGame, setNewGame] = useState(true);
     const [timeLeft, setTimeLeft] = useState(20); // Time elapsed in the current round
     const [isGameRunning, setIsGameRunning] = useState(false); // Whether the game is running
     const [guess, setGuess] = useState(''); // User's guess
@@ -14,8 +14,17 @@ function Game() {
     const [image, setImage] = useState(''); // Current image
     const [images, setImages] = useState([]); // List of generated images
 
-    const { score, numRounds, addToScore, resetScore, incrementRounds, categories, updateCategories, correctWords, updateCorrectWords } =
-        useContext(GameContext);
+    const {
+        score,
+        numRounds,
+        addToScore,
+        resetScore,
+        incrementRounds,
+        categories,
+        updateCategories,
+        correctWords,
+        updateCorrectWords,
+    } = useContext(GameContext);
 
     const isGameRunningRef = useRef(isGameRunning);
     const timeLeftRef = useRef(timeLeft);
@@ -30,7 +39,7 @@ function Game() {
 
     // Start the game
     const startGame = () => {
-        newGame = false;
+        setNewGame(false);
         setTimeLeft(ROUND_TIME); // Reset timer
         incrementRounds(); // Increment the number of rounds
         setGuess(''); // Reset the user's guess
@@ -78,7 +87,7 @@ function Game() {
         try {
             const response = await fetch('/api/generate');
             const data = await response.json();
-            console.log("ANSWER: ", data.answer);
+            console.log('ANSWER: ', data.answer);
             setAnswer(data.answer);
             setImages(data.images);
             updateCategories(data.categories);
@@ -103,14 +112,13 @@ function Game() {
             const data = await response.json();
             if (data.score == 1) {
                 const additonalScore = timeLeftRef.current * 10;
-                addToScore(additonalScore)
+                addToScore(additonalScore);
                 stopGame();
             }
-
         } catch (error) {
             console.error('Error checking answer:', error);
         }
-    }
+    };
 
     const handleAction = (submittedGuess) => {
         if (isGameRunning) {
@@ -119,28 +127,51 @@ function Game() {
     };
 
     const getTimeColor = () => {
-        if (timeLeft > 10) return "text-green-500";  // Safe time
-        if (timeLeft > 5) return "text-yellow-500"; // Warning
-        return "text-red-500"; // Critical time
+        if (timeLeft > 10) return 'text-green-500'; // Safe time
+        if (timeLeft > 5) return 'text-yellow-500'; // Warning
+        return 'text-red-500'; // Critical time
     };
-    
 
     return (
         <>
             <div className="flex flex-col w-full self-center items-center justify-items-center gap-4 font-[family-name:var(--font-geist-sans)]">
-                {(
+                {
                     <>
-                        <Image src={image || '\placeholder.svg'} alt="Generated Image" width={448} height={448} layout="responsive" className="w-full max-w-[400px] bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center"/>
+                        {newGame ? (
+                            <Image
+                                src="initialscreen.svg"
+                                alt="Generated Image"
+                                width={448}
+                                height={448}
+                                layout="responsive"
+                                className="w-full max-w-[400px] bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center"
+                                onClick={() => {
+                                    newGame ? startGame() : null;
+                                }}
+                            />
+                        ) : (
+                            <Image
+                                src={image || '\placeholder.svg'}
+                                alt="Generated Image"
+                                width={448}
+                                height={448}
+                                layout="responsive"
+                                className="w-full max-w-[400px] bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center"
+                                onClick={() => {
+                                    newGame ? startGame() : null;
+                                }}
+                            />
+                        )}
                     </>
-                )}
+                }
                 <p className="w-200 text-xl text-center sm:text-center font-[family-name:var(--font-geist-mono)]  font-bold">
                     Round: {numRounds} | Score: {score}
                 </p>
-                <p className= {`text-xl font-bold ${getTimeColor()} w-200 text-md text-center sm:text-center font-[family-name:var(--font-geist-mono)]`}>
+                <p
+                    className={`text-xl font-bold ${getTimeColor()} w-200 text-md text-center sm:text-center font-[family-name:var(--font-geist-mono)]`}
+                >
                     Time left: {timeLeft} seconds
                 </p>
-                
-
 
                 <div className="flex items-center gap-4">
                     <form
@@ -162,48 +193,60 @@ function Game() {
 
                         <input type="submit" disabled={!isGameRunning} hidden />
                     </form>
-                
-                {!isGameRunning ? (
-                    <button
-                        onClick={startGame}
-                        className="rounded-md bg-green-100 p-2 h-[40px] hover:bg-green-200"
-                    >
-                        {numRounds == 0 ? 'Start Game' : 'Next Round'}
-                    </button>
-                ) : (
-                    <button
-                        onClick={stopGame}
-                        className="rounded-md bg-red-100 p-2 h-[40px]"
-                    >
-                        Stop Game
-                    </button>
-                )}
-                </div>
 
-                <div className="mt-4 text-center">
-                    {isGameRunning ? (
-                        <p className="text-sm text-gray-600">
-                            The categories are{" "}
-                            <span className="text-blue-600 font-bold">{categories[0]}</span> and{" "}
-                            <span className="text-green-600 font-bold">{categories[1]}</span>.
-                        </p>
+                    {!isGameRunning ? (
+                        <button
+                            onClick={startGame}
+                            className="rounded-md bg-green-100 p-2 h-[40px] hover:bg-green-200"
+                        >
+                            {numRounds == 0 ? 'Start Game' : 'Next Round'}
+                        </button>
                     ) : (
-                        timeLeft >= ROUND_TIME && !newGame && (
-                            <div>
-                                <p className="text-lg font-semibold text-black-500">
-                                    Round over! Final Score: {score}
-                                </p>
-                                <p className="text-sm text-gray-600 mt-2">
-                                    Correct words were:{" "}
-                                    <span className="text-blue-600 font-bold">{correctWords[0]}</span> and{" "}
-                                    <span className="text-green-600 font-bold">{correctWords[1]}</span>.
-                                </p>
-                            </div>
-                        )
+                        <button
+                            onClick={stopGame}
+                            className="rounded-md bg-red-100 p-2 h-[40px]"
+                        >
+                            Stop Game
+                        </button>
                     )}
                 </div>
 
-
+                {newGame ? null : (
+                    <div className="mt-4 text-center">
+                        {isGameRunning ? (
+                            <p className="text-sm text-gray-600">
+                                The categories are{' '}
+                                <span className="text-blue-600 font-bold">
+                                    {categories[0]}
+                                </span>{' '}
+                                and{' '}
+                                <span className="text-green-600 font-bold">
+                                    {categories[1]}
+                                </span>
+                                .
+                            </p>
+                        ) : (
+                            timeLeft <= 0 && (
+                                <div>
+                                    <p className="text-lg font-semibold text-black-500">
+                                        Round over! Final Score: {score}
+                                    </p>
+                                    <p className="text-sm text-gray-600 mt-2">
+                                        Correct words were:{' '}
+                                        <span className="text-blue-600 font-bold">
+                                            {correctWords[0]}
+                                        </span>{' '}
+                                        and{' '}
+                                        <span className="text-green-600 font-bold">
+                                            {correctWords[1]}
+                                        </span>
+                                        .
+                                    </p>
+                                </div>
+                            )
+                        )}
+                    </div>
+                )}
             </div>
         </>
     );
