@@ -129,10 +129,10 @@ function Game() {
                         <Image src={image || '\placeholder.svg'} alt="Generated Image" width={450} height={225} layout="responsive" className="w-full max-w-[400px] bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center"/>
                     </>
                 )}
-                <p className="w-200 text-sm text-center sm:text-center font-[family-name:var(--font-geist-mono)] text-2xl font-bold">
+                <p className="w-200 text-xl text-center sm:text-center font-[family-name:var(--font-geist-mono)]  font-bold">
                     Round: {numRounds} | Score: {score}
                 </p>
-                <p className= {`text-2xl font-bold ${getTimeColor()} w-200 text-sm text-center sm:text-center font-[family-name:var(--font-geist-mono)]`}>
+                <p className= {`text-xl font-bold ${getTimeColor()} w-200 text-md text-center sm:text-center font-[family-name:var(--font-geist-mono)]`}>
                     Time left: {timeLeft} seconds
                 </p>
                 
