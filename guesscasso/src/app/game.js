@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import Image from 'next/image';
 import { GameContext } from './gameContext';
 
@@ -9,23 +9,29 @@ function Game() {
     const [timeLeft, setTimeLeft] = useState(0); // Time elapsed in the current round
     const [isGameRunning, setIsGameRunning] = useState(false); // Whether the game is running
     const [guess, setGuess] = useState(''); // User's guess
+    const [answer, setAnswer] = useState(''); // Correct answer
     const [image, setImage] = useState(''); // Generated image
 
-    const { score, numRounds, incrementScore, resetScore, incrementRounds } =
+    const { score, numRounds, addToScore, resetScore, incrementRounds } =
         useContext(GameContext);
+
+    const isGameRunningRef = useRef(isGameRunning);
+
+    useEffect(() => {
+        isGameRunningRef.current = isGameRunning;
+    }, [isGameRunning]);
 
     // Start the game
     const startGame = () => {
-        setTimeLeft(0); // Reset timer
+        setTimeLeft(ROUND_TIME); // Reset timer
         incrementRounds(); // Increment the number of rounds
         setGuess(''); // Reset the user's guess
         setImage(''); // Reset the image
         setIsGameRunning(true); // Start the game
     };
 
-    // Stop the game
     const stopGame = () => {
-        setIsGameRunning(false); // Stop the game
+        setIsGameRunning(false);
     };
 
     // Main game loop using useEffect
@@ -37,19 +43,22 @@ function Game() {
             console.log('Image fetched!');
 
             const interval = setInterval(async () => {
+                if (!isGameRunningRef.current) {
+                    clearInterval(interval); // Stop the interval if the game is not running
+                    return;
+                }
                 setTimeLeft((prevTime) => {
-                    if (prevTime + 1 >= ROUND_TIME) {
+                    if (prevTime - 1 <= 0) {
                         clearInterval(interval); // Stop the timer when round ends
                         setIsGameRunning(false); // End the game
-                        console.log('Round over!');
                         return ROUND_TIME;
                     }
-                    return prevTime + 1; // Increment elapsed time
+                    return prevTime - 1; // Increment elapsed time
                 });
 
-                if (timeLeft % IMAGE_UPDATE_INTERVAL === 0) {
-                    await fetchImage(); // Update the image every few seconds
-                }
+                // if (timeLeft % IMAGE_UPDATE_INTERVAL === 0) {
+                //     await fetchImage(); // Update the image every few seconds
+                // }
             }, 1000); // Run every second
 
             return () => clearInterval(interval);
@@ -63,16 +72,35 @@ function Game() {
         try {
             const response = await fetch('/api/generate');
             const data = await response.json();
+            setAnswer(data.answer);
             setImage(data.image);
         } catch (error) {
             console.error('Error fetching image:', error);
         }
     };
 
-    // Example: Handle user actions (e.g., scoring points)
-    const handleAction = () => {
+    const checkAnswer = async (userGuess) => {
+        const response = await fetch('/api/evaluate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                answer,
+                userGuess,
+            }),
+        });
+        const data = await response.json();
+        console.log('Answer:', data);
+    }
+
+    const handleAction = (submittedGuess) => {
         if (isGameRunning) {
-            // incrementScore(); // Increment score
+            checkAnswer(submittedGuess);
+            if (submittedGuess === 'dog') {
+                addToScore(50);
+                stopGame();
+            }
         }
     };
 

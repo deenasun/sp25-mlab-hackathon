@@ -6,7 +6,7 @@ export const GameProvider = ({ children }) => {
     const [score, setScore] = useState(0);
     const [numRounds, setNumRounds] = useState(0);
 
-    const incrementScore = () => setScore((prevScore) => prevScore + 1);
+    const addToScore = (newScore) => setScore((prevScore) => prevScore + newScore);
     const resetScore = () => setScore(0);
     const incrementRounds = () => setNumRounds((prevRounds) => prevRounds + 1);
 
@@ -15,7 +15,7 @@ export const GameProvider = ({ children }) => {
             value={{
                 score,
                 numRounds,
-                incrementScore,
+                addToScore,
                 resetScore,
                 incrementRounds,
             }}
