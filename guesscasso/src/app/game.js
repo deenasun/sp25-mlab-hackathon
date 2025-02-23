@@ -6,13 +6,13 @@ function Game() {
     const ROUND_TIME = 10; // Round duration in seconds
     const IMAGE_UPDATE_INTERVAL = 2; // Interval to update the image in seconds
 
-    const [timeLeft, setTimeLeft] = useState(0); // Time elapsed in the current round
+    const [timeLeft, setTimeLeft] = useState(10); // Time elapsed in the current round
     const [isGameRunning, setIsGameRunning] = useState(false); // Whether the game is running
     const [guess, setGuess] = useState(''); // User's guess
     const [answer, setAnswer] = useState(''); // Correct answer
     const [image, setImage] = useState(''); // Generated image
 
-    const { score, numRounds, addToScore, resetScore, incrementRounds } =
+    const { score, numRounds, addToScore, resetScore, incrementRounds, categories, correctWords } =
         useContext(GameContext);
 
     const isGameRunningRef = useRef(isGameRunning);
@@ -104,31 +104,43 @@ function Game() {
         }
     };
 
+    const getTimeColor = () => {
+        if (timeLeft > 10) return "text-green-500";  // Safe time
+        if (timeLeft > 5) return "text-yellow-500"; // Warning
+        return "text-red-500"; // Critical time
+    };
+    
+
     return (
         <>
             <div className="flex flex-col w-full self-center items-center justify-items-center gap-4 font-[family-name:var(--font-geist-sans)]">
-                <h1 className="text-center font-[family-name:var(--font-geist-mono)]">
-                    Guesscasso
-                </h1>
-                <p className="w-200 text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-                    Time left: {timeLeft} seconds
-                    <br></br>
-                    Round: {numRounds}
-                    <br></br>
-                    Score: {score}
+                {(
+                    <>
+                        <Image src={image || '\placeholder.svg'} alt="Generated Image" width={450} height={225} layout="responsive" className="w-full max-w-[400px] bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center"/>
+                    </>
+                )}
+                <p className="w-200 text-sm text-center sm:text-center font-[family-name:var(--font-geist-mono)] text-2xl font-bold">
+                    Round: {numRounds} | Score: {score}
                 </p>
-                <div>
+                <p className= {`text-2xl font-bold ${getTimeColor()} w-200 text-sm text-center sm:text-center font-[family-name:var(--font-geist-mono)]`}>
+                    Time left: {timeLeft} seconds
+                </p>
+                
+
+
+                <div className="flex items-center gap-4">
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
                             console.log('Guess:', e.target[0].value);
                             handleAction(e.target[0].value);
                         }}
+                        className="flex items-center gap-2"
                     >
                         <input
                             type="text"
                             placeholder="Enter your guess"
-                            className="rounded-md bg-gray-200 p-2 disabled:opacity-50"
+                            className="rounded-md bg-gray-200 p-2 disabled:opacity-50 width: 400"
                             disabled={!isGameRunning}
                             value={guess}
                             onChange={(e) => setGuess(e.target.value)}
@@ -136,34 +148,48 @@ function Game() {
 
                         <input type="submit" disabled={!isGameRunning} hidden />
                     </form>
-                </div>
-                {image && (
-                    <>
-                        <Image src={image} alt="Generated Image" width={500} height={500} />
-                    </>
-                )}
-            </div>
-
-            <div className="flex flex-col w-full self-center items-center justify-items-center gap-4 font-[family-name:var(--font-geist-sans)]">
+                
                 {!isGameRunning ? (
                     <button
                         onClick={startGame}
-                        className="rounded-md bg-gray-200 p-2"
+                        className="rounded-md bg-green-100 p-2"
                     >
                         {numRounds == 0 ? 'Start Game' : 'Next Round'}
                     </button>
                 ) : (
                     <button
                         onClick={stopGame}
-                        className="rounded-md bg-gray-200 p-2"
+                        className="rounded-md bg-red-100 p-2"
                     >
                         Stop Game
                     </button>
                 )}
+                </div>
 
-                {!isGameRunning && timeLeft >= ROUND_TIME ? (
-                    <p>Round over! Final Score: {score}</p>
-                ) : null}
+                <div className="mt-4 text-center">
+                    {isGameRunning ? (
+                        <p className="text-sm text-gray-600">
+                            Categories are{" "}
+                            <span className="text-blue-600 font-bold">{categories[0]}</span> and{" "}
+                            <span className="text-green-600 font-bold">{categories[1]}</span>.
+                        </p>
+                    ) : (
+                        timeLeft >= ROUND_TIME && (
+                            <div>
+                                <p className="text-lg font-semibold text-black-500">
+                                    Round over! Final Score: {score}
+                                </p>
+                                <p className="text-sm text-gray-600 mt-2">
+                                    Correct words were:{" "}
+                                    <span className="text-blue-600 font-bold">{correctWords[0]}</span> and{" "}
+                                    <span className="text-green-600 font-bold">{correctWords[1]}</span>.
+                                </p>
+                            </div>
+                        )
+                    )}
+                </div>
+
+
             </div>
         </>
     );
