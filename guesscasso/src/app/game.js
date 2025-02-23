@@ -6,6 +6,7 @@ function Game() {
     const ROUND_TIME = 20; // Round duration in seconds
     const NUM_IMAGES = 10; // Number of images + noisy images
 
+    let newGame = true;
     const [timeLeft, setTimeLeft] = useState(20); // Time elapsed in the current round
     const [isGameRunning, setIsGameRunning] = useState(false); // Whether the game is running
     const [guess, setGuess] = useState(''); // User's guess
@@ -13,7 +14,7 @@ function Game() {
     const [image, setImage] = useState(''); // Current image
     const [images, setImages] = useState([]); // List of generated images
 
-    const { score, numRounds, addToScore, resetScore, incrementRounds, categories, correctWords } =
+    const { score, numRounds, addToScore, resetScore, incrementRounds, categories, updateCategories, correctWords, updateCorrectWords } =
         useContext(GameContext);
 
     const isGameRunningRef = useRef(isGameRunning);
@@ -29,6 +30,7 @@ function Game() {
 
     // Start the game
     const startGame = () => {
+        newGame = false;
         setTimeLeft(ROUND_TIME); // Reset timer
         incrementRounds(); // Increment the number of rounds
         setGuess(''); // Reset the user's guess
@@ -79,6 +81,8 @@ function Game() {
             console.log("ANSWER: ", data.answer);
             setAnswer(data.answer);
             setImages(data.images);
+            updateCategories(data.categories);
+            updateCorrectWords(data.correctWords);
         } catch (error) {
             console.error('Error fetching image:', error);
         }
@@ -126,7 +130,7 @@ function Game() {
             <div className="flex flex-col w-full self-center items-center justify-items-center gap-4 font-[family-name:var(--font-geist-sans)]">
                 {(
                     <>
-                        <Image src={image || '\placeholder.svg'} alt="Generated Image" width={450} height={225} layout="responsive" className="w-full max-w-[400px] bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center"/>
+                        <Image src={image || '\placeholder.svg'} alt="Generated Image" width={448} height={448} layout="responsive" className="w-full max-w-[400px] bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center"/>
                     </>
                 )}
                 <p className="w-200 text-sm text-center sm:text-center font-[family-name:var(--font-geist-mono)] text-2xl font-bold">
@@ -179,12 +183,12 @@ function Game() {
                 <div className="mt-4 text-center">
                     {isGameRunning ? (
                         <p className="text-sm text-gray-600">
-                            Categories are{" "}
+                            The categories are{" "}
                             <span className="text-blue-600 font-bold">{categories[0]}</span> and{" "}
                             <span className="text-green-600 font-bold">{categories[1]}</span>.
                         </p>
                     ) : (
-                        timeLeft >= ROUND_TIME && (
+                        timeLeft >= ROUND_TIME && !newGame && (
                             <div>
                                 <p className="text-lg font-semibold text-black-500">
                                     Round over! Final Score: {score}

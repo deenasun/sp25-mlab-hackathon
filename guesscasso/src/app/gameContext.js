@@ -7,8 +7,8 @@ export const GameContext = createContext();
 export const GameProvider = ({ children }) => {
     const [score, setScore] = useState(0);
     const [numRounds, setNumRounds] = useState(0);
-    const [categories, setCategories] = useState(["space", "food"]);
-    const [correctWords, setCorrectWords] = useState(["Moon", "Pizza"]);
+    const [categories, setCategories] = useState([]);
+    const [correctWords, setCorrectWords] = useState([]);
 
     const addToScore = (newScore) => setScore((prevScore) => prevScore + newScore);
     const resetScore = () => setScore(0);
