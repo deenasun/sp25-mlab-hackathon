@@ -226,7 +226,6 @@ function Game() {
                                 .
                             </p>
                         ) : (
-                            timeLeft <= 0 && (
                                 <div>
                                     <p className="text-lg font-semibold text-black-500">
                                         Round over! Final Score: {score}
@@ -244,7 +243,7 @@ function Game() {
                                     </p>
                                 </div>
                             )
-                        )}
+                        }
                     </div>
                 )}
             </div>
