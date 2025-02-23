@@ -6,7 +6,7 @@ function Game() {
     const ROUND_TIME = 20; // Round duration in seconds
     const NUM_IMAGES = 10; // Number of images + noisy images
 
-    const [timeLeft, setTimeLeft] = useState(10); // Time elapsed in the current round
+    const [timeLeft, setTimeLeft] = useState(20); // Time elapsed in the current round
     const [isGameRunning, setIsGameRunning] = useState(false); // Whether the game is running
     const [guess, setGuess] = useState(''); // User's guess
     const [answer, setAnswer] = useState(''); // Correct answer
