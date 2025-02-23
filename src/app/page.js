@@ -25,7 +25,7 @@ export default function Home() {
             <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
         <a
           className="flex mt-2 items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://github.com/deenasun/guesscasso"
+          href="https://github.com/deenasun/piguesso"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -36,7 +36,7 @@ export default function Home() {
             width={16}
             height={16}
           />
-          Guesscasso on Github
+          PiGuesso on Github
         </a>
       </footer>
         </div>
